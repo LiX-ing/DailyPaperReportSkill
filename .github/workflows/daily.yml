@@ -19,9 +19,12 @@ jobs:
           pip install -r paper-daily-mvp/requirements-openai.txt
       - name: Run
         env:
-          LLM_PROVIDER: openai
-          LLM_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          LLM_MODEL: gpt-4.1-mini
+          SKILL_PROVIDER: compat_http
+          SKILL_AUTH_TOKEN: ${{ secrets.SKILL_AUTH_TOKEN }}
+          SKILL_MODEL: ${{ vars.SKILL_MODEL }}
+          SKILL_BASE_URL: ${{ vars.SKILL_BASE_URL }}
+          ENABLE_FEISHU_WEBHOOK: "true"
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           OPENALEX_EMAIL: your-email@example.com
         run: |
           cd paper-daily-mvp
