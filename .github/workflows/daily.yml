@@ -16,7 +16,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -r paper-daily-mvp/requirements-openai.txt
+          pip install -r requirements-openai.txt
       - name: Run
         env:
           SKILL_PROVIDER: compat_http
@@ -27,12 +27,11 @@ jobs:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           OPENALEX_EMAIL: your-email@example.com
         run: |
-          cd paper-daily-mvp
           python scripts/run_from_skill_config.py --respect-time --verbose
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
         with:
           name: daily-paper-report
           path: |
-            paper-daily-mvp/output/md/*.md
-            paper-daily-mvp/output/feishu_cards/*.json
+            output/md/*.md
+            output/feishu_cards/*.json
