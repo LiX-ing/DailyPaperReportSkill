@@ -14,9 +14,21 @@ cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/skill-package
 安装后 Skill 目录：
 - `~/.codex/skills/paper-daily-skill/`
 
-## 2) 核心配置（以 Skill 目录为准）
+## 2) 用户可自行修改的配置
 
-### `~/.codex/skills/paper-daily-skill/config/credentials.yaml`
+### A. Skill 运行配置（必改这里）
+
+文件：`~/.codex/skills/paper-daily-skill/config/skill.yaml`
+
+用于控制：
+- 输出目录与格式（markdown / feishu card json）
+- 去重开关
+- webhook 开关与 URL
+- 定时任务开关、时间、时区
+
+### B. LLM 凭据（必改这里）
+
+文件：`~/.codex/skills/paper-daily-skill/config/credentials.yaml`
 
 ```yaml
 llm:
@@ -27,34 +39,52 @@ llm:
   api_style: chat
 ```
 
-### `~/.codex/skills/paper-daily-skill/config/skill.yaml`
+### C. venues 筛选配置（可改）
 
-```yaml
-output:
-  md_dir: output/md
-  feishu_card_dir: output/feishu_cards
-  formats:
-    - markdown
-    - feishu_card_json
+文件：`/Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/config/venues.yaml`
 
-dedup:
-  enabled: true
-  skip_if_generated: true
+你可以在这里修改：
+- 顶会/期刊名单
+- 不同 domain 的 venue 组
+- 过滤规则
 
-webhook:
-  enabled: true
-  url: https://open.feishu.cn/open-apis/bot/v2/hook/xxxx
+### D. Prompt 模板（可改）
 
-schedule:
-  enabled: true
-  domain: ai
-  source: openalex
-  query: ""
-  run_time: "19:00"
-  timezone: "Asia/Shanghai"
+文件：`/Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/prompts/zh_summary_prompt.txt`
+
+你可以在这里修改：
+- 中文总结风格
+- 输出结构约束
+- 卡片字段偏好
+
+## 3) 端到端流程（定时 -> 检索 -> 去重 -> 输出 -> 推送）
+
+1. 定时触发（本机 `launchd/cron/schtasks` 或 GitHub Actions `daily.yml`）。
+2. 读取 `skill.yaml`（schedule/domain/source/query/webhook/output）。
+3. 从 OpenAlex 拉取候选论文。
+4. 用 `venues.yaml` 按 domain + venue 过滤。
+5. 用 SQLite 记录做去重（避免重复生成同一论文）。
+6. 命中新论文后调用 LLM（`credentials.yaml`）生成结构化内容。
+7. 落盘 Markdown + Feishu Card JSON。
+8. 若 `webhook.enabled=true` 且 URL 有效，则发送飞书卡片（失败不阻塞主流程）。
+
+```mermaid
+flowchart TD
+    A[定时触发<br/>local scheduler / GitHub Actions] --> B[读取 skill.yaml]
+    B --> C[OpenAlex 拉取候选]
+    C --> D[venues.yaml 过滤]
+    D --> E[SQLite 去重检查]
+    E -->|已生成| F[跳过并结束]
+    E -->|新论文| G[LLM 生成结构化摘要]
+    G --> H[写入 Markdown]
+    G --> I[写入 Feishu Card JSON]
+    I --> J{webhook.enabled?}
+    J -->|是| K[发送 Feishu Webhook]
+    J -->|否| L[结束]
+    K --> L
 ```
 
-## 3) 一条命令控制（推荐）
+## 4) 一条命令控制（推荐）
 
 自然语言改配置 + 重装系统定时 + 可选立即执行：
 
@@ -73,14 +103,14 @@ python /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/scripts/skill_
   --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml
 ```
 
-## 4) 手动执行一轮
+## 5) 手动执行一轮
 
 ```bash
 cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp
 python scripts/run_from_skill_config.py --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml --verbose
 ```
 
-## 5) 本机定时任务
+## 6) 本机定时任务
 
 跨平台安装器：
 
@@ -92,28 +122,22 @@ python scripts/install_scheduler.py --skill-config ~/.codex/skills/paper-daily-s
 - Linux: 打印 `cron` 安装命令
 - Windows: 打印 `schtasks` 命令
 
-## 6) GitHub Actions（CI/CD）
+## 7) GitHub Actions（CI/CD）
 
 - `ci.yml`：push/PR 自动跑测试（CI）
-- `daily.yml`：定时日报（CD-like 运行任务）
+- `daily.yml`：按 cron 触发，结合 `skill.yaml` 的 `schedule.run_time` 做“到点才真正执行”
 
-### 为什么你看到 CI 绿但 CD 没跑？
-
-`daily.yml` 不会因为 push 触发，只会：
-1. 到 cron 时间触发
-2. 手动 `Run workflow` 触发
-
-### 需要配置的 GitHub Secrets / Variables
-
-Repository **Secrets**:
+Repository **Secrets**（示例）：
 - `SKILL_AUTH_TOKEN`
 - `FEISHU_WEBHOOK_URL`
 
-Repository **Variables**:
-- `SKILL_MODEL`（如 `deepseek-chat`）
-- `SKILL_BASE_URL`（如 `https://api.deepseek.com`）
+Repository **Variables**（示例）：
+- `SKILL_MODEL`
+- `SKILL_BASE_URL`
 
-## 7) 验证
+说明：`${{ }}` 只写在 workflow YAML 里，不写在 `skill.yaml` 里。
+
+## 8) 验证
 
 ```bash
 cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp
