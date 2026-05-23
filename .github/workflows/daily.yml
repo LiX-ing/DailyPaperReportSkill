@@ -1,0 +1,35 @@
+name: Daily Paper
+
+on:
+  schedule:
+    - cron: "0 * * * *" # hourly trigger; actual run time gated by config/skill.yaml schedule.run_time
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r paper-daily-mvp/requirements-openai.txt
+      - name: Run
+        env:
+          LLM_PROVIDER: openai
+          LLM_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_MODEL: gpt-4.1-mini
+          OPENALEX_EMAIL: your-email@example.com
+        run: |
+          cd paper-daily-mvp
+          python scripts/run_from_skill_config.py --respect-time --verbose
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-paper-report
+          path: |
+            paper-daily-mvp/output/md/*.md
+            paper-daily-mvp/output/feishu_cards/*.json

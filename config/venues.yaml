@@ -1,0 +1,155 @@
+version: 1
+updated_at: 2026-04-16
+
+domains:
+  ai:
+    description: Artificial Intelligence
+    venues:
+      - AAAI
+      - IJCAI
+      - NeurIPS
+      - ICML
+      - ICLR
+      - ACL
+      - EMNLP
+      - CVPR
+      - ICCV
+      - ECCV
+      - TPAMI
+      - JMLR
+    openreview_venues:
+      - ICLR.cc/{year}/Conference
+      - NeurIPS.cc/{year}/Conference
+  data_mining:
+    description: Data Mining and Data Engineering
+    venues:
+      - KDD
+      - WWW
+      - WSDM
+      - ICDM
+      - SDM
+      - ICDE
+      - VLDB
+      - SIGMOD
+      - TKDE
+      - TODS
+  machine_learning:
+    description: Machine Learning
+    venues:
+      - NeurIPS
+      - ICML
+      - ICLR
+      - AISTATS
+      - UAI
+      - COLT
+      - JMLR
+      - TMLR
+      - Machine Learning
+    openreview_venues:
+      - ICLR.cc/{year}/Conference
+      - NeurIPS.cc/{year}/Conference
+      - ICML.cc/{year}/Conference
+  software_engineering:
+    description: Software Engineering
+    venues:
+      - ICSE
+      - FSE
+      - ASE
+      - ISSTA
+      - ESEC/FSE
+      - TSE
+      - TOSEM
+      - EMSE
+    openreview_venues:
+      - ICSE.org/{year}/Conference
+
+selection:
+  default_year_window: 2
+  max_candidates: 50
+  abstract_min_words: 80
+
+venue_aliases:
+  AAAI:
+    - Association for the Advancement of Artificial Intelligence
+  IJCAI:
+    - International Joint Conference on Artificial Intelligence
+  NeurIPS:
+    - Neural Information Processing Systems
+  ICML:
+    - International Conference on Machine Learning
+  ICLR:
+    - International Conference on Learning Representations
+  ACL:
+    - Annual Meeting of the Association for Computational Linguistics
+    - Association for Computational Linguistics
+  EMNLP:
+    - Empirical Methods in Natural Language Processing
+  CVPR:
+    - Computer Vision and Pattern Recognition
+  ICCV:
+    - International Conference on Computer Vision
+  ECCV:
+    - European Conference on Computer Vision
+  TPAMI:
+    - IEEE Transactions on Pattern Analysis and Machine Intelligence
+    - Transactions on Pattern Analysis and Machine Intelligence
+  JMLR:
+    - Journal of Machine Learning Research
+
+  KDD:
+    - Knowledge Discovery and Data Mining
+  WWW:
+    - The Web Conference
+    - World Wide Web Conference
+  WSDM:
+    - Web Search and Data Mining
+  ICDM:
+    - International Conference on Data Mining
+  SDM:
+    - SIAM International Conference on Data Mining
+  ICDE:
+    - International Conference on Data Engineering
+  VLDB:
+    - Very Large Data Bases
+    - Proceedings of the VLDB Endowment
+  SIGMOD:
+    - International Conference on Management of Data
+    - SIGMOD Conference
+  TKDE:
+    - IEEE Transactions on Knowledge and Data Engineering
+    - Transactions on Knowledge and Data Engineering
+  TODS:
+    - ACM Transactions on Database Systems
+    - Transactions on Database Systems
+
+  AISTATS:
+    - International Conference on Artificial Intelligence and Statistics
+  UAI:
+    - Conference on Uncertainty in Artificial Intelligence
+  COLT:
+    - Conference on Learning Theory
+  TMLR:
+    - Transactions on Machine Learning Research
+  Machine Learning:
+    - Machine Learning
+
+  ICSE:
+    - International Conference on Software Engineering
+  FSE:
+    - Foundations of Software Engineering
+    - ESEC/FSE
+  ESEC/FSE:
+    - ESEC/FSE
+    - Foundations of Software Engineering
+  ASE:
+    - Automated Software Engineering
+  ISSTA:
+    - International Symposium on Software Testing and Analysis
+  TSE:
+    - IEEE Transactions on Software Engineering
+    - Transactions on Software Engineering
+  TOSEM:
+    - ACM Transactions on Software Engineering and Methodology
+    - Transactions on Software Engineering and Methodology
+  EMSE:
+    - Empirical Software Engineering

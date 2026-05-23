@@ -1,0 +1,19 @@
+output:
+  md_dir: output/md
+  feishu_card_dir: output/feishu_cards
+  formats:
+  - markdown
+  - feishu_card_json
+dedup:
+  enabled: true
+  skip_if_generated: true
+webhook:
+  enabled: false
+  url: ''
+schedule:
+  enabled: true
+  domain: ai
+  source: openalex
+  query: ''
+  run_time: 07:00
+  timezone: Asia/Shanghai
