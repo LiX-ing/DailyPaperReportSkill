@@ -8,7 +8,7 @@ dedup:
   enabled: true
   skip_if_generated: true
 webhook:
-  enabled: false
+  enabled: true
   url: ''
 schedule:
   enabled: true
