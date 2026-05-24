@@ -7,3 +7,4 @@ data/
 logs/
 .DS_Store
 skill-package/*.tar.gz
+skill-package/paper-daily-skill/config/local.env

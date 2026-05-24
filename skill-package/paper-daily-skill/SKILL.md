@@ -14,13 +14,13 @@ Use this skill when user asks to:
 ## Default Run
 Run cache-first daily generation for domain `ai`:
 ```bash
-/Users/lijiaxing/.codex/skills/paper-daily-skill/scripts/run_paper_daily.sh ai openalex
+$HOME/.codex/skills/paper-daily-skill/scripts/run_paper_daily.sh ai openalex
 ```
 
 ## Constraint Run
 If user gives constraints, pass the full user text as query:
 ```bash
-/Users/lijiaxing/.codex/skills/paper-daily-skill/scripts/run_paper_daily.sh ai openalex "<user_query>"
+$HOME/.codex/skills/paper-daily-skill/scripts/run_paper_daily.sh ai openalex "<user_query>"
 ```
 
 ## Webhook Behavior
@@ -29,15 +29,15 @@ If user gives constraints, pass the full user text as query:
 - Webhook failure is non-blocking.
 
 ## Output Files
-- Markdown: `/Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/output/md/`
-- Feishu card JSON: `/Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/output/feishu_cards/`
+- Markdown: `<project_root>/output/md/`
+- Feishu card JSON: `<project_root>/output/feishu_cards/`
 
 After running, read the latest markdown report and return concise Chinese summary.
 
 ## Validation
 If user asks for validation, run:
 ```bash
-cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp && python -m unittest discover -s tests -v
+cd <project_root> && python -m unittest discover -s tests -v
 ```
 
 ## References
@@ -48,6 +48,7 @@ cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp && python -m unitt
 ## Config
 - Skill config file: `~/.codex/skills/paper-daily-skill/config/skill.yaml`
 - Skill credentials: `~/.codex/skills/paper-daily-skill/config/credentials.yaml`
+- Local runtime override: `~/.codex/skills/paper-daily-skill/config/local.env` (optional, path only)
 - Feishu webhook env: `FEISHU_WEBHOOK_URL`
 - Feishu switch: `ENABLE_FEISHU_WEBHOOK=true/false` (overrides config)
 
@@ -57,13 +58,13 @@ cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp && python -m unitt
 ## One-Command Control
 Use unified controller for natural language scheduling:
 ```bash
-python /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/scripts/skill_ctl.py "每天19点给我一个论文" --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml --run-now --verbose
+python scripts/skill_ctl.py "每天19点给我一个论文" --skill-config "$HOME/.codex/skills/paper-daily-skill/config/skill.yaml" --run-now --verbose
 ```
 
 
 ## Natural Language Scheduling
 For requests like "每天19点给我一个论文" or "停止定时任务", run:
 ```bash
-python /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/scripts/skill_ctl.py "<user_request>" --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml --run-now --verbose
+python scripts/skill_ctl.py "<user_request>" --skill-config "$HOME/.codex/skills/paper-daily-skill/config/skill.yaml" --run-now --verbose
 ```
 Do not use default report flow for schedule-edit intents.

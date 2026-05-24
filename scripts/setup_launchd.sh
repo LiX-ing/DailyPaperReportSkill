@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ROOT="/Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp"
-SKILL_CONFIG="/Users/lijiaxing/.codex/skills/paper-daily-skill/config/skill.yaml"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SKILL_CONFIG="${SKILL_CONFIG_PATH:-$HOME/.codex/skills/paper-daily-skill/config/skill.yaml}"
+SKILL_HOME="${SKILL_HOME:-$HOME/.codex/skills/paper-daily-skill}"
 PLIST_PATH="$HOME/Library/LaunchAgents/com.lijiaxing.paper-daily-skill.plist"
 LOG_DIR="$PROJECT_ROOT/logs"
 OUT_LOG="$LOG_DIR/paper-daily-launchd.out.log"
@@ -15,10 +17,19 @@ if [[ ! -f "$SKILL_CONFIG" ]]; then
   exit 1
 fi
 
-RUN_TIME="$(python - <<'PY'
+case "$PROJECT_ROOT" in
+  "$HOME/Documents"/*|"$HOME/Desktop"/*|"$HOME/Downloads"/*)
+    echo "Project root is under a protected macOS folder: $PROJECT_ROOT"
+    echo "Move repo to a non-protected path (e.g. \$HOME/work/paper-daily-mvp), then re-run setup."
+    exit 2
+    ;;
+esac
+
+RUN_TIME="$(SKILL_CONFIG="$SKILL_CONFIG" python - <<'PY'
+import os
 from pathlib import Path
 import yaml
-p = Path('/Users/lijiaxing/.codex/skills/paper-daily-skill/config/skill.yaml')
+p = Path(os.environ["SKILL_CONFIG"])
 c = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
 s = c.get('schedule', {}) if isinstance(c, dict) else {}
 rt = s.get('run_time','07:00')
@@ -41,7 +52,18 @@ MIN="${RUN_TIME##*:}"
 HOUR="$(printf '%d' "$HOUR")"
 MIN="$(printf '%d' "$MIN")"
 
-CMD="cd '$PROJECT_ROOT' && if [ -d .venv ]; then source .venv/bin/activate; fi && python scripts/run_from_skill_config.py --skill-config '$SKILL_CONFIG' --respect-time --verbose"
+if [[ -x "$PROJECT_ROOT/.venv/bin/python" ]]; then
+  PY_BIN="$PROJECT_ROOT/.venv/bin/python"
+else
+  PY_BIN="$(command -v python3 || true)"
+fi
+if [[ -z "$PY_BIN" ]]; then
+  echo "python3 not found and .venv python missing. Please install python3."
+  exit 3
+fi
+
+CMD="cd '$PROJECT_ROOT' && SKILL_HOME='$SKILL_HOME' '$PY_BIN' scripts/run_from_skill_config.py --skill-config '$SKILL_CONFIG' --respect-time --verbose"
+CMD_XML="${CMD//&/&amp;}"
 
 cat > "$PLIST_PATH" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -55,7 +77,7 @@ cat > "$PLIST_PATH" <<PLIST
   <array>
     <string>/bin/zsh</string>
     <string>-lc</string>
-    <string>$CMD</string>
+    <string>$CMD_XML</string>
   </array>
 
   <key>StartCalendarInterval</key>
@@ -80,8 +102,10 @@ cat > "$PLIST_PATH" <<PLIST
 </plist>
 PLIST
 
-launchctl unload "$PLIST_PATH" >/dev/null 2>&1 || true
-launchctl load "$PLIST_PATH"
+plutil -lint "$PLIST_PATH" >/dev/null
+launchctl bootout "gui/$(id -u)" "$PLIST_PATH" >/dev/null 2>&1 || true
+launchctl bootstrap "gui/$(id -u)" "$PLIST_PATH"
+launchctl enable "gui/$(id -u)/com.lijiaxing.paper-daily-skill" >/dev/null 2>&1 || true
 
 echo "Installed launchd job: com.lijiaxing.paper-daily-skill"
 echo "Schedule: daily at $RUN_TIME (system local timezone)"

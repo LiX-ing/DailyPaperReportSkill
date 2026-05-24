@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import plistlib
 import platform
 import subprocess
 from pathlib import Path
@@ -21,34 +22,49 @@ def read_schedule(skill_config: Path) -> tuple[bool, str, str]:
 
 
 def install_macos(project_root: Path, skill_config: Path, run_time: str) -> None:
+    home = Path.home()
+    protected_roots = [home / "Documents", home / "Desktop", home / "Downloads"]
+    if any(root in project_root.parents or project_root == root for root in protected_roots):
+        raise SystemExit(
+            "project-root is under a protected macOS folder (Documents/Desktop/Downloads). "
+            "Move the repo to e.g. ~/work/paper-daily-mvp and retry."
+        )
+
     hh, mm = run_time.split(":", 1)
     hh_i, mm_i = int(hh), int(mm)
     label = "com.lijiaxing.paper-daily-skill"
-    plist = Path.home() / "Library/LaunchAgents" / f"{label}.plist"
+    plist = home / "Library/LaunchAgents" / f"{label}.plist"
     logs = project_root / "logs"
     logs.mkdir(parents=True, exist_ok=True)
+    py_bin = project_root / ".venv/bin/python"
+    if py_bin.exists():
+        py = str(py_bin)
+    else:
+        py = "python3"
 
     cmd = (
         f"cd '{project_root}' && "
-        f"if [ -d .venv ]; then source .venv/bin/activate; fi && "
-        f"python scripts/run_from_skill_config.py --skill-config '{skill_config}' --respect-time --verbose"
+        f"{py} scripts/run_from_skill_config.py --skill-config '{skill_config}' --respect-time --verbose"
     )
-    plist.write_text(
-        f'''<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-<key>Label</key><string>{label}</string>
-<key>ProgramArguments</key><array><string>/bin/zsh</string><string>-lc</string><string>{cmd}</string></array>
-<key>StartCalendarInterval</key><dict><key>Hour</key><integer>{hh_i}</integer><key>Minute</key><integer>{mm_i}</integer></dict>
-<key>RunAtLoad</key><false/>
-<key>WorkingDirectory</key><string>{project_root}</string>
-<key>StandardOutPath</key><string>{logs / 'paper-daily-launchd.out.log'}</string>
-<key>StandardErrorPath</key><string>{logs / 'paper-daily-launchd.err.log'}</string>
-</dict></plist>''',
-        encoding="utf-8",
-    )
-    subprocess.run(["launchctl", "unload", str(plist)], check=False)
-    subprocess.run(["launchctl", "load", str(plist)], check=True)
+    plist_data = {
+        "Label": label,
+        "ProgramArguments": ["/bin/zsh", "-lc", cmd],
+        "StartCalendarInterval": {"Hour": hh_i, "Minute": mm_i},
+        "RunAtLoad": False,
+        "WorkingDirectory": str(project_root),
+        "StandardOutPath": str(logs / "paper-daily-launchd.out.log"),
+        "StandardErrorPath": str(logs / "paper-daily-launchd.err.log"),
+    }
+    plist.parent.mkdir(parents=True, exist_ok=True)
+    with plist.open("wb") as f:
+        plistlib.dump(plist_data, f)
+
+    uid = subprocess.check_output(["id", "-u"], text=True).strip()
+    domain = f"gui/{uid}"
+    subprocess.run(["plutil", "-lint", str(plist)], check=True)
+    subprocess.run(["launchctl", "bootout", domain, str(plist)], check=False)
+    subprocess.run(["launchctl", "bootstrap", domain, str(plist)], check=True)
+    subprocess.run(["launchctl", "enable", f"{domain}/{label}"], check=False)
     print(f"Installed launchd job at {plist}")
 
 

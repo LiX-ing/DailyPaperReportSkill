@@ -7,18 +7,18 @@
 ## 1) 快速安装 Skill
 
 ```bash
-cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/skill-package
+cd skill-package
 ./install_skill.sh
 ```
 
 安装后 Skill 目录：
-- `~/.codex/skills/paper-daily-skill/`
+- `$HOME/.codex/skills/paper-daily-skill/`
 
 ## 2) 用户可自行修改的配置
 
 ### A. Skill 运行配置（必改这里）
 
-文件：`~/.codex/skills/paper-daily-skill/config/skill.yaml`
+文件：`$HOME/.codex/skills/paper-daily-skill/config/skill.yaml`
 
 用于控制：
 - 输出目录与格式（markdown / feishu card json）
@@ -28,7 +28,7 @@ cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/skill-package
 
 ### B. LLM 凭据（必改这里）
 
-文件：`~/.codex/skills/paper-daily-skill/config/credentials.yaml`
+文件：`$HOME/.codex/skills/paper-daily-skill/config/credentials.yaml`
 
 ```yaml
 llm:
@@ -39,9 +39,20 @@ llm:
   api_style: chat
 ```
 
+### B2. 本地路径覆盖（可选）
+
+文件：`$HOME/.codex/skills/paper-daily-skill/config/local.env`
+
+作用：
+- 仅用于本机路径映射（例如项目根目录）
+- 不放 API Key、Webhook 等敏感信息
+
+示例模板在仓库：
+- `skill-package/paper-daily-skill/config/local.env.example`
+
 ### C. venues 筛选配置（可改）
 
-文件：`/Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/config/venues.yaml`
+文件：`config/venues.yaml`
 
 你可以在这里修改：
 - 顶会/期刊名单
@@ -50,7 +61,7 @@ llm:
 
 ### D. Prompt 模板（可改）
 
-文件：`/Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/prompts/zh_summary_prompt.txt`
+文件：`prompts/zh_summary_prompt.txt`
 
 你可以在这里修改：
 - 中文总结风格
@@ -89,25 +100,24 @@ flowchart TD
 自然语言改配置 + 重装系统定时 + 可选立即执行：
 
 ```bash
-python /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/scripts/skill_ctl.py \
+python scripts/skill_ctl.py \
   "每天19点给我一个论文" \
-  --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml \
+  --skill-config "$HOME/.codex/skills/paper-daily-skill/config/skill.yaml" \
   --run-now --verbose
 ```
 
 停止定时任务：
 
 ```bash
-python /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp/scripts/skill_ctl.py \
+python scripts/skill_ctl.py \
   "停止定时任务" \
-  --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml
+  --skill-config "$HOME/.codex/skills/paper-daily-skill/config/skill.yaml"
 ```
 
 ## 5) 手动执行一轮
 
 ```bash
-cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp
-python scripts/run_from_skill_config.py --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml --verbose
+python scripts/run_from_skill_config.py --skill-config "$HOME/.codex/skills/paper-daily-skill/config/skill.yaml" --verbose
 ```
 
 ## 6) 本机定时任务
@@ -115,12 +125,15 @@ python scripts/run_from_skill_config.py --skill-config ~/.codex/skills/paper-dai
 跨平台安装器：
 
 ```bash
-python scripts/install_scheduler.py --skill-config ~/.codex/skills/paper-daily-skill/config/skill.yaml
+python scripts/install_scheduler.py --skill-config "$HOME/.codex/skills/paper-daily-skill/config/skill.yaml"
 ```
 
 - macOS: 自动安装 `launchd`
 - Linux: 打印 `cron` 安装命令
 - Windows: 打印 `schtasks` 命令
+
+注意（macOS）：
+- 建议将项目放在非受保护目录（例如 `~/work/paper-daily-mvp`），避免 `launchd` 访问 `Documents/Desktop/Downloads` 时出现权限错误导致定时任务不执行。
 
 ## 7) GitHub Actions（CI/CD）
 
@@ -140,6 +153,16 @@ Repository **Variables**（示例）：
 ## 8) 验证
 
 ```bash
-cd /Users/lijiaxing/Documents/codex_workspace/paper-daily-mvp
 python -m unittest discover -s tests -v
 ```
+
+## 9) 配置优先级（重要）
+
+推荐使用顺序：
+1. `config/skill.yaml`（功能开关、输出、定时、webhook）
+2. `config/credentials.yaml`（LLM 凭据）
+3. `config/local.env`（仅本机路径覆盖）
+
+兼容说明：
+- `.env` / `.env.example` 属于历史兼容入口，不是必需。
+- 新安装和新用户建议仅使用上面的 `config/*.yaml + local.env`。
