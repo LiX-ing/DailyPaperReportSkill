@@ -28,6 +28,12 @@ fi
 
 cd "$PROJECT_ROOT"
 
+# Preflight: auto-heal writable runtime dirs for DB/output/logs.
+mkdir -p data output logs
+chmod -R u+rwX data output logs 2>/dev/null || true
+chflags -R nouchg data output logs 2>/dev/null || true
+xattr -dr com.apple.quarantine data output logs 2>/dev/null || true
+
 if [[ -d ".venv" ]]; then
   # shellcheck disable=SC1091
   source .venv/bin/activate

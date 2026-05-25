@@ -139,6 +139,7 @@ python scripts/install_scheduler.py --skill-config "$HOME/.codex/skills/paper-da
 
 - `ci.yml`：push/PR 自动跑测试（CI）
 - `daily.yml`：按 cron 触发，结合 `skill.yaml` 的 `schedule.run_time` 做“到点才真正执行”
+- 本机 scheduler（launchd/cron/schtasks）按 `run_time` 直接触发执行，不再做二次 `--respect-time` 校验，避免系统延迟 1-5 分钟导致误跳过。
 
 Repository **Secrets**（示例）：
 - `SKILL_AUTH_TOKEN`
@@ -166,3 +167,9 @@ python -m unittest discover -s tests -v
 兼容说明：
 - `.env` / `.env.example` 属于历史兼容入口，不是必需。
 - 新安装和新用户建议仅使用上面的 `config/*.yaml + local.env`。
+
+## 10) 运行权限自愈（新增）
+
+- Skill 在定时/手动执行前会自动检查并尝试修复 `data/`、`output/`、`logs/` 与 `data/seen_papers.db` 的可写权限。
+- 若系统仍阻止写入（例如磁盘策略或所有权问题），会输出可直接执行的修复命令，而不是静默失败。
+

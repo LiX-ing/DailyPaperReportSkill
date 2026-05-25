@@ -21,3 +21,12 @@
 ## 2026-05-24 00:57:15
 - request: 每天01点00分给我一篇论文
 - change: schedule.run_time=01:00
+## 2026-05-25 20:21:00
+- request: 停止定时任务
+- change: schedule.enabled=false
+## 2026-05-25 20:21:19
+- request: 每天20点30给我一篇论文
+- change: schedule.run_time=20:00
+## 2026-05-25 20:21:38
+- request: 每天20点30分给我一篇论文
+- change: schedule.run_time=20:30

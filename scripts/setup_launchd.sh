@@ -62,7 +62,7 @@ if [[ -z "$PY_BIN" ]]; then
   exit 3
 fi
 
-CMD="cd '$PROJECT_ROOT' && SKILL_HOME='$SKILL_HOME' '$PY_BIN' scripts/run_from_skill_config.py --skill-config '$SKILL_CONFIG' --respect-time --verbose"
+CMD="cd '$PROJECT_ROOT' && SKILL_HOME='$SKILL_HOME' '$PY_BIN' scripts/run_from_skill_config.py --skill-config '$SKILL_CONFIG' --verbose"
 CMD_XML="${CMD//&/&amp;}"
 
 cat > "$PLIST_PATH" <<PLIST

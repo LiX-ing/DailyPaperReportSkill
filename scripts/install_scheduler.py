@@ -44,7 +44,7 @@ def install_macos(project_root: Path, skill_config: Path, run_time: str) -> None
 
     cmd = (
         f"cd '{project_root}' && "
-        f"{py} scripts/run_from_skill_config.py --skill-config '{skill_config}' --respect-time --verbose"
+        f"{py} scripts/run_from_skill_config.py --skill-config '{skill_config}' --verbose"
     )
     plist_data = {
         "Label": label,
@@ -73,7 +73,7 @@ def install_linux(project_root: Path, skill_config: Path, run_time: str) -> None
     cron_line = (
         f"{int(mm)} {int(hh)} * * * cd '{project_root}' && "
         f"if [ -d .venv ]; then . .venv/bin/activate; fi && "
-        f"python scripts/run_from_skill_config.py --skill-config '{skill_config}' --respect-time --verbose"
+        f"python scripts/run_from_skill_config.py --skill-config '{skill_config}' --verbose"
     )
     print("Run these commands on Linux:")
     print("(crontab -l 2>/dev/null; echo \"" + cron_line + "\") | crontab -")
@@ -84,7 +84,7 @@ def install_windows(project_root: Path, skill_config: Path, run_time: str) -> No
     task_name = "paper-daily-skill"
     cmd = (
         f'schtasks /Create /F /SC DAILY /TN "{task_name}" '
-        f'/TR "python {project_root / "scripts/run_from_skill_config.py"} --skill-config {skill_config} --respect-time --verbose" '
+        f'/TR "python {project_root / "scripts/run_from_skill_config.py"} --skill-config {skill_config} --verbose" '
         f'/ST {int(hh):02d}:{int(mm):02d}'
     )
     print("Run this command in Windows CMD as your user:")

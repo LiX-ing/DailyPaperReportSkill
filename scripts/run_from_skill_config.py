@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,8 +20,55 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--skill-config", default="config/skill.yaml")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--verbose", action="store_true")
-    p.add_argument("--respect-time", action="store_true", help="Run only when now matches schedule.run_time in schedule.timezone")
+    p.add_argument(
+        "--respect-time",
+        action="store_true",
+        help="Run only when now matches schedule.run_time in schedule.timezone",
+    )
     return p.parse_args()
+
+
+def _try_make_writable(path: Path) -> None:
+    try:
+        mode = path.stat().st_mode
+    except FileNotFoundError:
+        return
+
+    if path.is_dir():
+        path.chmod(mode | 0o700)
+    else:
+        path.chmod(mode | 0o600)
+
+
+def ensure_runtime_writable(root: Path) -> None:
+    """Best-effort self-heal for common macOS move/zip permission issues."""
+    dirs = [root / "data", root / "output", root / "logs"]
+    db = root / "data" / "seen_papers.db"
+
+    for d in dirs:
+        d.mkdir(parents=True, exist_ok=True)
+        _try_make_writable(d)
+
+    db.touch(exist_ok=True)
+    _try_make_writable(db)
+
+    # macOS: clear immutable/quarantine flags when possible.
+    if sys.platform == "darwin":
+        subprocess.run(["chflags", "-R", "nouchg", str(root / "data"), str(root / "output"), str(root / "logs")], check=False)
+        subprocess.run(["xattr", "-dr", "com.apple.quarantine", str(root / "data"), str(root / "output"), str(root / "logs")], check=False)
+
+    # Final strict check.
+    to_check = dirs + [db]
+    for p in to_check:
+        if not os.access(p, os.W_OK):
+            raise SystemExit(
+                "Runtime path is not writable: "
+                f"{p}.\n"
+                "Please run:\n"
+                "  chmod -R u+rwX data output logs\n"
+                "  chflags -R nouchg data output logs\n"
+                "and retry."
+            )
 
 
 def main() -> None:
@@ -29,6 +77,8 @@ def main() -> None:
     skill_config_path = Path(args.skill_config)
     if not skill_config_path.is_absolute():
         skill_config_path = root / skill_config_path
+
+    ensure_runtime_writable(root)
 
     cfg = load_skill_config(skill_config_path)
     schedule = cfg.schedule
