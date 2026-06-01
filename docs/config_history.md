@@ -30,3 +30,6 @@
 ## 2026-05-25 20:21:38
 - request: 每天20点30分给我一篇论文
 - change: schedule.run_time=20:30
+## 2026-05-28 11:22:35
+- request: 每天12点00分给我一篇论文
+- change: schedule.run_time=12:00
