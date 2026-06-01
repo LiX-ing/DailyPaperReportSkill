@@ -20,8 +20,8 @@ jobs:
       - name: Debug Model Env
         env:
           SKILL_PROVIDER: compat_http
-          SKILL_MODEL: ${{ vars.SKILL_MODEL }}
-          SKILL_BASE_URL: ${{ vars.SKILL_BASE_URL }}
+          SKILL_MODEL: ${{ secrets.SKILL_MODEL }}
+          SKILL_BASE_URL: ${{ secrets.SKILL_BASE_URL }}
           ENABLE_FEISHU_WEBHOOK: "true"
         run: |
           echo "SKILL_PROVIDER=$SKILL_PROVIDER"
@@ -32,8 +32,8 @@ jobs:
         env:
           SKILL_PROVIDER: compat_http
           SKILL_AUTH_TOKEN: ${{ secrets.SKILL_AUTH_TOKEN }}
-          SKILL_MODEL: ${{ vars.SKILL_MODEL }}
-          SKILL_BASE_URL: ${{ vars.SKILL_BASE_URL }}
+          SKILL_MODEL: ${{ secrets.SKILL_MODEL }}
+          SKILL_BASE_URL: ${{ secrets.SKILL_BASE_URL }}
           ENABLE_FEISHU_WEBHOOK: "true"
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           OPENALEX_EMAIL: your-email@example.com
